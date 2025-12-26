@@ -75,7 +75,7 @@ export function ReadMoreSection({
   return (
     <section className="border-t border-border p-0">
       <div className="p-6 lg:p-10">
-        <h2 className="text-2xl font-medium mb-8">Read more</h2>
+        <h2 className="text-2xl font-medium mb-8">More case studies</h2>
 
         <div className="flex flex-col gap-8">
           {otherPosts.map((post) => {
