@@ -1,8 +1,8 @@
 export const siteConfig = {
-  name: "Magic UI Blog",
-  url: "https://blog-magicui.vercel.app",
+  name: "RapidXAI Case Studies",
+  url: "https://rapidxai.com",
   description:
-    "Modern React and web development tutorials, insights, and best practices.",
+    "Proven Success Stories & Measurable Results. AI automation solutions transforming Real Estate, Education, Digital Marketing, and Enterprise SaaS.",
 };
 
 export type SiteConfig = typeof siteConfig;

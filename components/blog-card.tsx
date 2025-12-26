@@ -6,7 +6,7 @@ interface BlogCardProps {
   url: string;
   title: string;
   description: string;
-  date: string;
+
   thumbnail?: string;
   showRightBorder?: boolean;
 }
@@ -15,7 +15,7 @@ export function BlogCard({
   url,
   title,
   description,
-  date,
+
   thumbnail,
   showRightBorder = true,
 }: BlogCardProps) {
@@ -45,9 +45,7 @@ export function BlogCard({
             {title}
           </h3>
           <p className="text-muted-foreground text-sm">{description}</p>
-          <time className="block text-sm font-medium text-muted-foreground">
-            {date}
-          </time>
+
         </div>
       </div>
     </Link>

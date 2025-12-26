@@ -3,7 +3,6 @@ import { loader } from "fumadocs-core/source";
 import { createMDXSource } from "fumadocs-mdx";
 import { Suspense } from "react";
 import { BlogCard } from "@/components/blog-card";
-import { TagFilter } from "@/components/tag-filter";
 import { FlickeringGrid } from "@/components/magicui/flickering-grid";
 
 interface BlogData {
@@ -28,20 +27,15 @@ const blogSource = loader({
   source: createMDXSource(docs, meta),
 });
 
-const formatDate = (date: Date): string => {
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
 
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ tag?: string }>;
-}) {
-  const resolvedSearchParams = await searchParams;
+
+const stats = [
+  { label: "Successful Implementations", value: "$25,000+" },
+  { label: "Annual Client Savings", value: "$500,000+" },
+  { label: "Project Completion Rate", value: "100%" },
+];
+
+export default async function HomePage() {
   const allPages = blogSource.getPages() as BlogPage[];
   const sortedBlogs = allPages.sort((a, b) => {
     const dateA = new Date(a.data.date).getTime();
@@ -49,33 +43,9 @@ export default async function HomePage({
     return dateB - dateA;
   });
 
-  const allTags = [
-    "All",
-    ...Array.from(
-      new Set(sortedBlogs.flatMap((blog) => blog.data.tags || []))
-    ).sort(),
-  ];
-
-  const selectedTag = resolvedSearchParams.tag || "All";
-  const filteredBlogs =
-    selectedTag === "All"
-      ? sortedBlogs
-      : sortedBlogs.filter((blog) => blog.data.tags?.includes(selectedTag));
-
-  const tagCounts = allTags.reduce((acc, tag) => {
-    if (tag === "All") {
-      acc[tag] = sortedBlogs.length;
-    } else {
-      acc[tag] = sortedBlogs.filter((blog) =>
-        blog.data.tags?.includes(tag)
-      ).length;
-    }
-    return acc;
-  }, {} as Record<string, number>);
-
   return (
     <div className="min-h-screen bg-background relative">
-      <div className="absolute top-0 left-0 z-0 w-full h-[200px] [mask-image:linear-gradient(to_top,transparent_25%,black_95%)]">
+      <div className="absolute top-0 left-0 z-0 w-full h-[400px] [mask-image:linear-gradient(to_top,transparent_25%,black_95%)]">
         <FlickeringGrid
           className="absolute top-0 left-0 size-full"
           squareSize={4}
@@ -85,38 +55,52 @@ export default async function HomePage({
           flickerChance={0.05}
         />
       </div>
-      <div className="p-6 border-b border-border flex flex-col gap-6 min-h-[250px] justify-center relative z-10">
+
+      {/* Hero Section with Portfolio Overview */}
+      <div className="p-6 border-b border-border flex flex-col gap-8 min-h-[400px] justify-center relative z-10">
         <div className="max-w-7xl mx-auto w-full">
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-4">
             <h1 className="font-medium text-4xl md:text-5xl tracking-tighter">
-              Magic UI Blog
+              RapidXAI Case Studies & Client Success Stories
             </h1>
-            <p className="text-muted-foreground text-sm md:text-base lg:text-lg">
-              Latest news and updates from Magic UI.
+            <p className="text-lg md:text-xl font-medium text-foreground/90">
+              Proven Success Stories & Measurable Results
+            </p>
+            <p className="text-muted-foreground text-sm md:text-base">
+              Industries Transformed: Real Estate, Education, Digital Marketing, Enterprise SaaS
             </p>
           </div>
-        </div>
-        {allTags.length > 0 && (
-          <div className="max-w-7xl mx-auto w-full">
-            <TagFilter
-              tags={allTags}
-              selectedTag={selectedTag}
-              tagCounts={tagCounts}
-            />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 border-y border-border py-8">
+            {stats.map((stat, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-center justify-center text-center space-y-2"
+              >
+                <div className="text-3xl font-medium text-foreground tracking-tight">
+                  {stat.value}
+                </div>
+                <div className="text-sm text-muted-foreground uppercase tracking-wider font-medium">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto w-full px-6 lg:px-0">
-        <Suspense fallback={<div>Loading articles...</div>}>
+      {/* Flagship Success Stories Section */}
+      <div className="max-w-7xl mx-auto w-full px-6 lg:px-0 py-8">
+        <h2 className="text-2xl md:text-3xl font-medium tracking-tight mb-6">
+          Flagship Success Stories:
+        </h2>
+        <Suspense fallback={<div>Loading case studies...</div>}>
           <div
-            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 relative overflow-hidden border-x border-border ${
-              filteredBlogs.length < 4 ? "border-b" : "border-b-0"
-            }`}
+            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 relative overflow-hidden border-x border-border ${sortedBlogs.length < 4 ? "border-b" : "border-b-0"
+              }`}
           >
-            {filteredBlogs.map((blog) => {
-              const date = new Date(blog.data.date);
-              const formattedDate = formatDate(date);
+            {sortedBlogs.map((blog) => {
+
 
               return (
                 <BlogCard
@@ -124,9 +108,9 @@ export default async function HomePage({
                   url={blog.url}
                   title={blog.data.title}
                   description={blog.data.description}
-                  date={formattedDate}
+
                   thumbnail={blog.data.thumbnail}
-                  showRightBorder={filteredBlogs.length < 3}
+                  showRightBorder={sortedBlogs.length < 3}
                 />
               );
             })}

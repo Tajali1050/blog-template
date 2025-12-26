@@ -12,7 +12,7 @@ import { TableOfContents } from "@/components/table-of-contents";
 import { MobileTableOfContents } from "@/components/mobile-toc";
 import { AuthorCard } from "@/components/author-card";
 import { ReadMoreSection } from "@/components/read-more-section";
-import { PromoContent } from "@/components/promo-content";
+
 import { getAuthor, isValidAuthor } from "@/lib/authors";
 import { FlickeringGrid } from "@/components/magicui/flickering-grid";
 import { HashScrollHandler } from "@/components/hash-scroll-handler";
@@ -26,13 +26,7 @@ const blogSource = loader({
   source: createMDXSource(docs, meta),
 });
 
-const formatDate = (date: Date): string => {
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
+
 
 export default async function BlogPost({ params }: PageProps) {
   const { slug } = await params;
@@ -48,8 +42,7 @@ export default async function BlogPost({ params }: PageProps) {
   }
 
   const MDX = page.data.body;
-  const date = new Date(page.data.date);
-  const formattedDate = formatDate(date);
+
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -86,9 +79,7 @@ export default async function BlogPost({ params }: PageProps) {
                 ))}
               </div>
             )}
-            <time className="font-medium text-muted-foreground">
-              {formattedDate}
-            </time>
+
           </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tighter text-balance">
@@ -139,7 +130,7 @@ export default async function BlogPost({ params }: PageProps) {
             <div className="border border-border rounded-lg p-6 bg-card">
               <TableOfContents />
             </div>
-            <PromoContent variant="desktop" />
+
           </div>
         </aside>
       </div>
