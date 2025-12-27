@@ -1,33 +1,11 @@
-import { docs, meta } from "@/.source";
-import { loader } from "fumadocs-core/source";
-import { createMDXSource } from "fumadocs-mdx";
 import { Suspense } from "react";
+import { createClient } from "@/lib/supabase/server";
 import { BlogCard } from "@/components/blog-card";
 import { FlickeringGrid } from "@/components/magicui/flickering-grid";
+import type { CaseStudy } from "@/lib/supabase/types";
 
-interface BlogData {
-  title: string;
-  description: string;
-  date: string;
-  tags?: string[];
-  featured?: boolean;
-  readTime?: string;
-  author?: string;
-  authorImage?: string;
-  thumbnail?: string;
-}
-
-interface BlogPage {
-  url: string;
-  data: BlogData;
-}
-
-const blogSource = loader({
-  baseUrl: "/blog",
-  source: createMDXSource(docs, meta),
-});
-
-
+// Revalidate every 60 seconds for ISR
+export const revalidate = 60;
 
 const stats = [
   { label: "Successful Implementations", value: "$25,000+" },
@@ -36,12 +14,14 @@ const stats = [
 ];
 
 export default async function HomePage() {
-  const allPages = blogSource.getPages() as BlogPage[];
-  const sortedBlogs = allPages.sort((a, b) => {
-    const dateA = new Date(a.data.date).getTime();
-    const dateB = new Date(b.data.date).getTime();
-    return dateB - dateA;
-  });
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("case_studies")
+    .select("*")
+    .order("date", { ascending: false });
+
+  const sortedBlogs = (data as CaseStudy[]) || [];
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -95,26 +75,34 @@ export default async function HomePage() {
           Flagship Success Stories:
         </h2>
         <Suspense fallback={<div>Loading case studies...</div>}>
-          <div
-            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 relative overflow-hidden border-x border-border ${sortedBlogs.length < 4 ? "border-b" : "border-b-0"
-              }`}
-          >
-            {sortedBlogs.map((blog) => {
-
-
-              return (
+          {error ? (
+            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
+              Error loading case studies. Please try again later.
+            </div>
+          ) : sortedBlogs.length > 0 ? (
+            <div
+              className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 relative overflow-hidden border-x border-border ${sortedBlogs.length < 4 ? "border-b" : "border-b-0"
+                }`}
+            >
+              {sortedBlogs.map((blog) => (
                 <BlogCard
-                  key={blog.url}
-                  url={blog.url}
-                  title={blog.data.title}
-                  description={blog.data.description}
-
-                  thumbnail={blog.data.thumbnail}
+                  key={blog.id}
+                  url={`/case-studies/${blog.slug}`}
+                  title={blog.title}
+                  description={blog.description}
+                  thumbnail={blog.thumbnail || undefined}
                   showRightBorder={sortedBlogs.length < 3}
                 />
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 border border-dashed border-border rounded-xl">
+              <h3 className="text-lg font-medium">No case studies yet</h3>
+              <p className="text-muted-foreground mt-1">
+                Check back soon for our success stories
+              </p>
+            </div>
+          )}
         </Suspense>
       </div>
     </div>
