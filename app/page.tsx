@@ -3,18 +3,19 @@ import { createClient } from "@/lib/supabase/server";
 import { BlogCard } from "@/components/blog-card";
 import { FlickeringGrid } from "@/components/magicui/flickering-grid";
 import type { CaseStudy } from "@/lib/supabase/types";
+import { withHeroFallback } from "@/lib/hero";
 
 // Revalidate every 60 seconds for ISR
 export const revalidate = 60;
 
-const stats = [
-  { label: "Successful Implementations", value: "$25,000+" },
-  { label: "Annual Client Savings", value: "$500,000+" },
-  { label: "Project Completion Rate", value: "100%" },
-];
-
 export default async function HomePage() {
   const supabase = await createClient();
+
+  const { data: heroData } = await supabase
+    .from("homepage_hero")
+    .select("*")
+    .limit(1)
+    .maybeSingle();
 
   const { data, error } = await supabase
     .from("case_studies")
@@ -22,6 +23,10 @@ export default async function HomePage() {
     .order("date", { ascending: false });
 
   const sortedBlogs = (data as CaseStudy[]) || [];
+  const hero = withHeroFallback(heroData);
+  const featuredStudies = sortedBlogs.filter((cs) => cs.featured);
+  const flagshipList = featuredStudies.length > 0 ? featuredStudies : sortedBlogs;
+  const additionalStudies = sortedBlogs.filter((cs) => !flagshipList.includes(cs));
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -41,18 +46,18 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto w-full">
           <div className="flex flex-col gap-4">
             <h1 className="font-medium text-4xl md:text-5xl tracking-tighter">
-              RapidXAI Case Studies & Client Success Stories
+              {hero.heading}
             </h1>
             <p className="text-lg md:text-xl font-medium text-foreground/90">
-              Proven Success Stories & Measurable Results
+              {hero.subheading}
             </p>
             <p className="text-muted-foreground text-sm md:text-base">
-              Industries Transformed: Real Estate, Education, Digital Marketing, Enterprise SaaS
+              {hero.description}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 border-y border-border py-8">
-            {stats.map((stat, index) => (
+            {hero.stats.map((stat, index) => (
               <div
                 key={index}
                 className="flex flex-col items-center justify-center text-center space-y-2"
@@ -79,19 +84,19 @@ export default async function HomePage() {
             <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
               Error loading case studies. Please try again later.
             </div>
-          ) : sortedBlogs.length > 0 ? (
+          ) : flagshipList.length > 0 ? (
             <div
-              className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 relative overflow-hidden border-x border-border ${sortedBlogs.length < 4 ? "border-b" : "border-b-0"
+              className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 relative overflow-hidden border-x border-border ${flagshipList.length < 4 ? "border-b" : "border-b-0"
                 }`}
             >
-              {sortedBlogs.map((blog) => (
+              {flagshipList.map((blog) => (
                 <BlogCard
                   key={blog.id}
                   url={`/case-studies/${blog.slug}`}
                   title={blog.title}
                   description={blog.description}
                   thumbnail={blog.thumbnail || undefined}
-                  showRightBorder={sortedBlogs.length < 3}
+                  showRightBorder={flagshipList.length < 3}
                 />
               ))}
             </div>
@@ -105,6 +110,30 @@ export default async function HomePage() {
           )}
         </Suspense>
       </div>
+
+      {/* Additional Success Stories Section */}
+      {additionalStudies.length > 0 && (
+        <div className="max-w-7xl mx-auto w-full px-6 lg:px-0 pb-12">
+          <h2 className="text-2xl md:text-3xl font-medium tracking-tight mb-6">
+            Additional Success Stories:
+          </h2>
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 relative overflow-hidden border-x border-border ${additionalStudies.length < 4 ? "border-b" : "border-b-0"
+              }`}
+          >
+            {additionalStudies.map((blog) => (
+              <BlogCard
+                key={blog.id}
+                url={`/case-studies/${blog.slug}`}
+                title={blog.title}
+                description={blog.description}
+                thumbnail={blog.thumbnail || undefined}
+                showRightBorder={additionalStudies.length < 3}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

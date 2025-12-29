@@ -17,6 +17,29 @@ export type CaseStudy = {
 export type CaseStudyInsert = Omit<CaseStudy, 'id' | 'created_at' | 'updated_at'>;
 export type CaseStudyUpdate = Partial<CaseStudyInsert>;
 
+export type HeroStat = {
+    label: string;
+    value: string;
+};
+
+export type HomepageHero = {
+    id: string;
+    heading: string;
+    subheading: string;
+    description: string | null;
+    stats: HeroStat[];
+    created_at: string;
+    updated_at: string;
+};
+
+export type HomepageHeroInsert = Partial<Pick<HomepageHero, 'id' | 'description'>> & {
+    heading: string;
+    subheading: string;
+    stats: HeroStat[];
+};
+
+export type HomepageHeroUpdate = Partial<HomepageHeroInsert>;
+
 export type Database = {
     public: {
         Tables: {
@@ -24,6 +47,11 @@ export type Database = {
                 Row: CaseStudy;
                 Insert: CaseStudyInsert;
                 Update: CaseStudyUpdate;
+            };
+            homepage_hero: {
+                Row: HomepageHero;
+                Insert: HomepageHeroInsert;
+                Update: HomepageHeroUpdate;
             };
         };
     };

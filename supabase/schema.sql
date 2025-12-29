@@ -61,6 +61,50 @@ CREATE INDEX IF NOT EXISTS idx_case_studies_slug ON case_studies(slug);
 -- Create index for date ordering
 CREATE INDEX IF NOT EXISTS idx_case_studies_date ON case_studies(date DESC);
 
+-- ============================================
+-- Homepage Hero Content
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS homepage_hero (
+  id TEXT PRIMARY KEY DEFAULT 'default',
+  heading TEXT NOT NULL,
+  subheading TEXT NOT NULL,
+  description TEXT,
+  stats JSONB NOT NULL DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE homepage_hero ENABLE ROW LEVEL SECURITY;
+
+-- Ensure the timestamp trigger function exists (needed if you run this block standalone)
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE POLICY "Public can view homepage hero" ON homepage_hero
+  FOR SELECT USING (true);
+
+CREATE POLICY "Authenticated users can insert homepage hero" ON homepage_hero
+  FOR INSERT TO authenticated
+  WITH CHECK (true);
+
+CREATE POLICY "Authenticated users can update homepage hero" ON homepage_hero
+  FOR UPDATE TO authenticated
+  USING (true);
+
+CREATE POLICY "Authenticated users can delete homepage hero" ON homepage_hero
+  FOR DELETE TO authenticated
+  USING (true);
+
+CREATE TRIGGER update_homepage_hero_updated_at
+  BEFORE UPDATE ON homepage_hero
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 
 -- ============================================
 -- Supabase Storage Bucket for Thumbnails
